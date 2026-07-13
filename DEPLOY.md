@@ -1,67 +1,67 @@
 # StockStudy 部署指南（Vercel + Neon Postgres）
 
-本機開發用 SQLite（`.env` 的 `DATABASE_URL="file:./dev.db"`），部署到 Vercel 時切換 Neon Postgres。
-以下步驟撰寫日期 2026-07-13，操作介面若有出入以 Vercel／Neon 官方文件為準。
+> **狀態：已部署上線（2026-07-13）**
+> 正式網址：**https://stock-study-seven.vercel.app**
+> Vercel 專案：`stock-study`（team: tom-corp）；資料庫：Neon Postgres（Marketplace）。
+> 全流程（註冊／登入／課程／測驗閱卷／進度寫入）已在 production 實測通過。
 
-## 一、前置：安裝 Vercel CLI 並登入
+本檔記錄實際的部署架構與「日後如何更新重部署」。若操作介面有出入，以 Vercel／Neon 官方文件為準。
 
-```bash
-npm i -g vercel
-vercel login
-```
+## 一、實際架構
 
-## 二、建立 Vercel 專案並開通 Neon
+- **程式碼部署**：用 `vercel --prod` 從本機直接上傳建置（不經 GitHub）。也可把 repo 推上 GitHub 後在 Dashboard 連結，改成 push 自動部署。
+- **資料庫**：Neon Postgres。Neon 的 Vercel 整合會自動注入一組環境變數，其中：
+  - `POSTGRES_PRISMA_URL`：pooled 連線（含 pgbouncer 參數），給 **runtime** 用 → `schema.prisma` 的 `url`。
+  - `POSTGRES_URL_NON_POOLING`：直連，給 **migration** 用 → `schema.prisma` 的 `directUrl`。
+- **AUTH_SECRET**：用 `vercel env add` 產生並設在 Production 與 Preview（登入 session 加密用）。
+- **建表方式**：`prisma/migrations/` 下有一份 Postgres 初始 migration（用 `prisma migrate diff --from-empty` 產生，不需連線）。build script 為
+  `prisma generate && prisma migrate deploy && next build`，**Vercel 建置時**才連 Neon 套用 migration，因此本機不需要 Neon 連線字串。
 
-1. 專案根目錄執行 `vercel link`（建立/連結 Vercel 專案）。
-2. 到 Vercel Dashboard → 該專案 → **Storage** → **Create Database** → 選 **Neon**（Marketplace，免費方案即可）。
-3. 開通後 Vercel 會自動注入 `DATABASE_URL` 等環境變數到專案（Production/Preview）。
-4. 在 Dashboard → Settings → Environment Variables 手動加上：
-   - `AUTH_SECRET`：執行 `openssl rand -base64 32` 產生（不要沿用本機值）。
-   - （`trustHost` 已寫在 `src/auth.config.ts`，故不必再設 `AUTH_TRUST_HOST`。）
-5. 執行 `vercel env pull .env.production.local` 取得雲端變數（本機跑 migration 用）。
+> 為什麼不在本機建表：Neon 注入的環境變數被 Vercel 標記為 **Sensitive（敏感、可寫不可讀回）**，`vercel env pull` 拉回來是空值。因此改成建置時在 Vercel 環境內執行 migration，最穩、也不必把資料庫密碼放到本機。
 
-## 三、切換 Prisma 到 Postgres
+## 二、日後「更新內容後重新部署」
 
-1. 改 `prisma/schema.prisma` 的 datasource：
-
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-```
-
-2. 刪除 SQLite 時代的 migrations（`prisma/migrations/` 整個資料夾）— 不同 provider 的 migration 不相容，重新產生：
+改了課程／知識內容或程式碼後：
 
 ```bash
-DATABASE_URL="<Neon 的連線字串>" npx prisma migrate dev --name init-postgres
+npx tsc --noEmit      # 確認型別無誤
+npm run build         # 本機這步會因缺 Neon 連線而在 migrate deploy 卡住，屬正常；
+                      # 只想本機驗證編譯可暫時跑 `next build`
+vercel --prod --yes   # 上傳 + 在 Vercel 建置 + 部署
 ```
 
-3. `package.json` 的 build script 已含 `prisma generate`（`"build": "prisma generate && next build"`，另有 `postinstall: prisma generate`），Vercel build 不必再調整。
+內容檔（`src/content/`）沒有動到資料表結構，所以 migrate deploy 不會有新動作，直接沿用既有表。
 
-> 注意：本機之後若還想用 SQLite 開發，就不要 commit 這個 provider 變更，
-> 或乾脆本機也改用 Neon 的免費開發分支（Neon 支援 branch，開發/正式分開）。
-> 建議：切了 Postgres 就不要回頭，本機直接連 Neon dev branch，環境一致最省事。
+## 三、若改了資料表結構（schema.prisma）
 
-## 四、部署
+1. 產生新的 migration SQL（不需連線）：
+   ```bash
+   # 以「目前資料庫狀態」為基準產生差異；簡單做法是用 migrate diff 產出後放進新的 migrations 子資料夾
+   npx prisma migrate diff --from-schema-datasource prisma/schema.prisma \
+     --to-schema-datamodel prisma/schema.prisma --script
+   ```
+   或在有 Neon 連線字串時直接 `npx prisma migrate dev --name <變更說明>`。
+2. 把新 migration 資料夾 commit / 一起 `vercel --prod`，build 時 `migrate deploy` 會自動套用。
 
-```bash
-vercel          # 預覽部署
-vercel --prod   # 正式部署
-```
+## 四、本機開發（重要）
 
-或把 repo 推上 GitHub 後在 Vercel Dashboard 連結該 repo，之後 push 即自動部署。
+`schema.prisma` 現在是 **postgresql**，本機 `.env` 的 `DATABASE_URL="file:./dev.db"` 已不被 schema 使用，所以 `npm run dev` 在本機會連不到資料庫。兩個選擇：
 
-## 五、部署後檢查清單
+- **（推薦）本機也連 Neon dev branch**：在 Neon 建一個 development 分支，把它的 `POSTGRES_PRISMA_URL` / `POSTGRES_URL_NON_POOLING` 寫進本機 `.env`（此檔已被 `.gitignore` 擋住）。開發與正式環境一致。
+- **回到 SQLite 本機開發**：把 `prisma/schema.prisma` 還原成 SQLite 版（備份在 `~/.claude/backups/2026-07-13/StockStudy-deploy/schema.prisma.sqlite`），並還原 `.env` 的 `DATABASE_URL`。缺點是與正式環境不一致。
 
-- [ ] 首頁未登入導向 /login
-- [ ] 註冊新帳號 → 登入 → dashboard 正常
-- [ ] 完成一天課程＋測驗，重新整理後進度仍在（確認寫進 Neon）
-- [ ] 知識模式已讀勾勾正常
+## 五、部署後檢查清單（本次已全數通過）
 
-## 常見問題
+- [x] 首頁未登入導向 /login
+- [x] 註冊新帳號 → 登入 → dashboard 正常
+- [x] 完成一天課程＋測驗，進度寫進 Neon
+- [x] 測驗閱卷回傳分數與逐題詳解、正解不外洩
+- [x] 邊界輸入回 4xx 而非 500
 
-- **build 失敗：PrismaClient 未生成** → build script 要有 `prisma generate`。
-- **登入後 500 / UntrustedHost** → 確認 `AUTH_TRUST_HOST=true` 與 `AUTH_SECRET` 已設。
-- **資料庫連線數用盡** → Neon 免費方案有連線上限，確認用的是 Neon 提供的 pooled 連線字串（含 `-pooler`）。
+## 六、常見問題
+
+- **build 失敗：PrismaClient 未生成** → build script 需含 `prisma generate`（已設，另有 `postinstall`）。
+- **build 失敗：migrate 無法連線** → 確認 Neon 整合仍在、`POSTGRES_URL_NON_POOLING` 存在於該環境。
+- **登入後 500 / UntrustedHost** → `trustHost: true` 已寫在 `src/auth.config.ts`；另確認 `AUTH_SECRET` 已設。
+- **資料庫連線數用盡** → runtime 用的是 pooled 的 `POSTGRES_PRISMA_URL`，已正確；Neon 免費方案連線上限對個人使用足夠。
 - **免費方案限制** → 個人＋親友使用綽綽有餘；若日後對外商業授課，Vercel 條款要求升級 Pro。

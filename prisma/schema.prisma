@@ -1,13 +1,16 @@
-// 本機開發用 SQLite；部署 Vercel 時改 provider = "postgresql"（見 DEPLOY.md）。
-// 刻意不使用 enum 與 Json 型別，保持未來可無痛切換 Postgres。
+// 已切換為 Neon Postgres（Vercel 部署）。
+// url 用 Neon 提供的 pooled 連線（含 pgbouncer 參數，供 runtime 用）；
+// directUrl 用非 pooled 直連（供 prisma migrate / db push 用）。
+// 刻意不使用 enum 與 Json 型別。若要回本機 SQLite，見 backups/2026-07-13/StockStudy-deploy/。
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model User {
