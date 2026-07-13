@@ -1,0 +1,47 @@
+// 本機開發用 SQLite；部署 Vercel 時改 provider = "postgresql"（見 DEPLOY.md）。
+// 刻意不使用 enum 與 Json 型別，保持未來可無痛切換 Postgres。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(cuid())
+  email          String          @unique
+  passwordHash   String
+  name           String
+  createdAt      DateTime        @default(now())
+  progresses     Progress[]
+  knowledgeReads KnowledgeRead[]
+}
+
+model Progress {
+  id               String   @id @default(cuid())
+  userId           String
+  day              Int
+  lessonCompleted  Boolean  @default(false)
+  bestScore        Int? // 歷史最佳答對題數
+  lastScore        Int? // 最近一次答對題數
+  quizTotal        Int? // 該日總題數
+  wrongQuestionIds String   @default("[]") // 最近一次錯題 id，JSON 字串（SQLite 無 Json 型別）
+  attempts         Int      @default(0)
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+}
+
+model KnowledgeRead {
+  id      String   @id @default(cuid())
+  userId  String
+  topicId String
+  readAt  DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+}
