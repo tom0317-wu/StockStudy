@@ -39,7 +39,9 @@ export default async function DashboardPage() {
       : p?.lessonCompleted
         ? "read"
         : "not-started";
-    cardsByPhase[lesson.phase].push({
+    // Stage 1 型別泛化後 phase 變成 string；stock-camp 內部仍固定用 Phase 字面值，故先用型別斷言
+    // 相容既有索引（Stage 5 會改用 getStageMeta()/config.stages 取代，屆時移除）。
+    cardsByPhase[lesson.phase as Phase].push({
       ...meta,
       status,
       bestScore: p?.bestScore ?? null,

@@ -6,6 +6,7 @@ import { getDayLesson, courseDays } from "@/content/course";
 import { getTopic } from "@/content/knowledge";
 import { toClientQuiz } from "@/lib/course-client";
 import { phaseMetas } from "@/lib/phases";
+import type { Phase } from "@/lib/content/types";
 import SiteHeader from "@/components/SiteHeader";
 import Markdown from "@/components/Markdown";
 import LessonActions from "@/components/LessonActions";
@@ -30,9 +31,11 @@ export default async function CourseDayPage({
     where: { userId_day: { userId: session.user.id, day } },
   });
 
-  const meta = phaseMetas[lesson.phase];
+  // Stage 1 型別泛化後 phase 變成 string；stock-camp 內部仍固定用 Phase 字面值，故先用型別斷言
+  // 相容既有 phaseMetas 索引（Stage 5 會改用 getStageMeta() 取代，屆時移除）。
+  const meta = phaseMetas[lesson.phase as Phase];
   const clientQuiz = toClientQuiz(lesson);
-  const related = lesson.relatedTopicIds
+  const related = (lesson.relatedTopicIds ?? [])
     .map((id) => getTopic(id))
     .filter((t): t is NonNullable<typeof t> => Boolean(t));
 

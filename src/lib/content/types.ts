@@ -1,6 +1,9 @@
 // 內容型別合約：所有 src/content/ 底下的課程與知識檔案必須符合這些型別。
 // 這個檔案是規格的一部分（見 DESIGN.md），不要隨意修改。
+// 本檔已隨多學習計畫平台改造泛化：phase 改 string（合法值由各 program config 宣告），
+// relatedTopicIds 改選填（無知識庫的 program 可省略）。
 
+/** stock-camp 內部沿用的 Phase 字面型別；其他 program 用各自的 stage id 字串。 */
 export type Phase = "A" | "B" | "C" | "D";
 
 export interface QuizQuestion {
@@ -22,9 +25,10 @@ export interface LessonSection {
 }
 
 export interface DayLesson {
-  /** 1-32 */
+  /** 1-32（各 program 依 config.dayCount 決定範圍） */
   day: number;
-  phase: Phase;
+  /** 對應 program config 內宣告的 stage id（stock-camp 沿用 Phase 字面值） */
+  phase: string;
   title: string;
   /** 預估閱讀分鐘數 */
   minutes: number;
@@ -36,8 +40,8 @@ export interface DayLesson {
   keyTakeaways: string[];
   /** 6-8 題（Day 32 總複習 12-15 題） */
   quiz: QuizQuestion[];
-  /** 對應知識庫 topic id（見 DESIGN.md 清單），2-5 個 */
-  relatedTopicIds: string[];
+  /** 對應知識庫 topic id（見 DESIGN.md 清單），2-5 個；無知識庫的 program 可省略 */
+  relatedTopicIds?: string[];
 }
 
 export interface KnowledgeCategory {

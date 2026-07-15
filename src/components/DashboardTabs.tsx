@@ -140,7 +140,9 @@ function StatCard({ label, value }: { label: string; value: string }) {
 }
 
 function DayCard({ card }: { card: DayCardData }) {
-  const meta = phaseMetas[card.phase];
+  // Stage 1 型別泛化後 phase 變成 string；stock-camp 內部仍固定用 Phase 字面值，故先用型別斷言
+  // 相容既有 phaseMetas 索引（Stage 5 會改收 stages props 取代，屆時移除）。
+  const meta = phaseMetas[card.phase as Phase];
   return (
     <Link
       href={`/course/${card.day}`}
