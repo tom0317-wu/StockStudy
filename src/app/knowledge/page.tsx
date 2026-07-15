@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { knowledgeCategories, topicsByCategory } from "@/content/knowledge";
+import { knowledgeCategories, topicsByCategory } from "@/content/stock-camp/knowledge";
 import SiteHeader from "@/components/SiteHeader";
 
 export default async function KnowledgePage() {

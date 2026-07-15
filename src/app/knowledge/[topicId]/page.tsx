@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { getTopic, topicsByCategory, knowledgeCategories } from "@/content/knowledge";
+import { getTopic, topicsByCategory, knowledgeCategories } from "@/content/stock-camp/knowledge";
 import SiteHeader from "@/components/SiteHeader";
 import Markdown from "@/components/Markdown";
 import KnowledgeReadTracker from "@/components/KnowledgeReadTracker";

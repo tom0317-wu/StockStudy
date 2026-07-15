@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getTopic } from "@/content/knowledge";
+import { getTopic } from "@/content/stock-camp/knowledge";
 
 const schema = z.object({
   topicId: z.string().min(1),

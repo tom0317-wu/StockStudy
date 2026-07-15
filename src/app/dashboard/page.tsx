@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { courseDays } from "@/content/course";
-import { knowledgeCategories, topicsByCategory } from "@/content/knowledge";
+import { courseDays } from "@/content/stock-camp/course";
+import { knowledgeCategories, topicsByCategory } from "@/content/stock-camp/knowledge";
 import { toDayCardMeta } from "@/lib/course-client";
 import SiteHeader from "@/components/SiteHeader";
 import DashboardTabs, {

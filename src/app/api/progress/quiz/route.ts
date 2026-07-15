@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getDayLesson } from "@/content/course";
+import { getDayLesson } from "@/content/stock-camp/course";
 
 const schema = z.object({
   day: z.number().int().min(1).max(32),
