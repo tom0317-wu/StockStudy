@@ -26,6 +26,8 @@ model User {
 model Progress {
   id               String   @id @default(cuid())
   userId           String
+  // 學習計畫 id（見 src/content/programs.ts）。default 供既有資料 backfill 與安全網。
+  programId        String   @default("stock-camp")
   day              Int
   lessonCompleted  Boolean  @default(false)
   bestScore        Int? // 歷史最佳答對題數
@@ -36,15 +38,17 @@ model Progress {
   updatedAt        DateTime @updatedAt
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, day])
+  @@unique([userId, programId, day])
 }
 
 model KnowledgeRead {
-  id      String   @id @default(cuid())
-  userId  String
-  topicId String
-  readAt  DateTime @default(now())
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  // 學習計畫 id，同 Progress.programId
+  programId String   @default("stock-camp")
+  topicId   String
+  readAt    DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, topicId])
+  @@unique([userId, programId, topicId])
 }

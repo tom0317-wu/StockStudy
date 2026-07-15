@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getDayLesson } from "@/content/stock-camp/course";
+import { getProgram, getProgramCourse } from "@/content";
 
 const schema = z.object({
-  day: z.number().int().min(1).max(32),
+  programId: z.string().min(1),
+  day: z.number().int().min(1),
   answers: z.array(z.number().int()),
 });
 
@@ -25,13 +26,27 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "day 或 answers 參數不正確" },
+      { error: "programId、day 或 answers 參數不正確" },
       { status: 400 },
     );
   }
 
-  const { day, answers } = parsed.data;
-  const lesson = getDayLesson(day);
+  const { programId, day, answers } = parsed.data;
+
+  const program = getProgram(programId);
+  if (!program || program.status === "draft") {
+    return NextResponse.json({ error: "找不到該學習計畫" }, { status: 404 });
+  }
+  if (day > program.config.dayCount) {
+    return NextResponse.json({ error: "day 參數不正確" }, { status: 400 });
+  }
+
+  const course = getProgramCourse(programId);
+  if (!course) {
+    return NextResponse.json({ error: "找不到該學習計畫" }, { status: 404 });
+  }
+
+  const lesson = course.getDayLesson(day);
   if (!lesson) {
     return NextResponse.json({ error: "找不到該日課程" }, { status: 404 });
   }
@@ -63,15 +78,16 @@ export async function POST(request: Request) {
   const userId = session.user.id;
   try {
     const existing = await prisma.progress.findUnique({
-      where: { userId_day: { userId, day } },
+      where: { userId_programId_day: { userId, programId, day } },
       select: { bestScore: true },
     });
     const bestScore = Math.max(existing?.bestScore ?? 0, score);
 
     await prisma.progress.upsert({
-      where: { userId_day: { userId, day } },
+      where: { userId_programId_day: { userId, programId, day } },
       create: {
         userId,
+        programId,
         day,
         lastScore: score,
         bestScore,

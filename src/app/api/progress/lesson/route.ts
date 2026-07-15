@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getDayLesson } from "@/content/stock-camp/course";
+import { getProgram, getProgramCourse } from "@/content";
 
 const schema = z.object({
-  day: z.number().int().min(1).max(32),
+  programId: z.string().min(1),
+  day: z.number().int().min(1),
 });
 
 export async function POST(request: Request) {
@@ -23,19 +24,29 @@ export async function POST(request: Request) {
 
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
+    return NextResponse.json({ error: "programId 或 day 參數不正確" }, { status: 400 });
+  }
+
+  const { programId, day } = parsed.data;
+
+  const program = getProgram(programId);
+  if (!program || program.status === "draft") {
+    return NextResponse.json({ error: "找不到該學習計畫" }, { status: 404 });
+  }
+  if (day > program.config.dayCount) {
     return NextResponse.json({ error: "day 參數不正確" }, { status: 400 });
   }
 
-  const { day } = parsed.data;
-  if (!getDayLesson(day)) {
+  const course = getProgramCourse(programId);
+  if (!course || !course.getDayLesson(day)) {
     return NextResponse.json({ error: "找不到該日課程" }, { status: 404 });
   }
 
   const userId = session.user.id;
   try {
     await prisma.progress.upsert({
-      where: { userId_day: { userId, day } },
-      create: { userId, day, lessonCompleted: true },
+      where: { userId_programId_day: { userId, programId, day } },
+      create: { userId, programId, day, lessonCompleted: true },
       update: { lessonCompleted: true },
     });
     return NextResponse.json({ ok: true, day, lessonCompleted: true });

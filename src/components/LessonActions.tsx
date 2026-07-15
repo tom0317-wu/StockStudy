@@ -4,9 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LessonActions({
+  programId,
   day,
   initialCompleted,
 }: {
+  programId: string;
   day: number;
   initialCompleted: boolean;
 }) {
@@ -21,7 +23,7 @@ export default function LessonActions({
       const res = await fetch("/api/progress/lesson", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ day }),
+        body: JSON.stringify({ programId, day }),
       });
       if (res.ok) {
         setCompleted(true);

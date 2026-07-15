@@ -28,7 +28,13 @@ export default async function CourseDayPage({
   if (!lesson) notFound();
 
   const progress = await prisma.progress.findUnique({
-    where: { userId_day: { userId: session.user.id, day } },
+    where: {
+      userId_programId_day: {
+        userId: session.user.id,
+        programId: "stock-camp",
+        day,
+      },
+    },
   });
 
   // Stage 1 型別泛化後 phase 變成 string；stock-camp 內部仍固定用 Phase 字面值，故先用型別斷言
@@ -101,6 +107,7 @@ export default async function CourseDayPage({
         {/* 完成閱讀 */}
         <div className="mt-6">
           <LessonActions
+            programId="stock-camp"
             day={day}
             initialCompleted={progress?.lessonCompleted ?? false}
           />
@@ -113,7 +120,7 @@ export default async function CourseDayPage({
             全部作答後即可交卷，交卷後會顯示每題詳解。
           </p>
           <div className="mt-4">
-            <Quiz day={day} questions={clientQuiz} />
+            <Quiz programId="stock-camp" day={day} questions={clientQuiz} />
           </div>
         </div>
 

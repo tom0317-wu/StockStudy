@@ -18,9 +18,11 @@ interface QuizResult {
 }
 
 export default function Quiz({
+  programId,
   day,
   questions,
 }: {
+  programId: string;
   day: number;
   questions: ClientQuizQuestion[];
 }) {
@@ -51,7 +53,7 @@ export default function Quiz({
       const res = await fetch("/api/progress/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ day, answers }),
+        body: JSON.stringify({ programId, day, answers }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
