@@ -1,31 +1,27 @@
-import Link from "next/link";
 import { auth } from "@/auth";
-import LogoutButton from "@/components/LogoutButton";
+import { listPublishedPrograms } from "@/content";
+import PlatformHeader from "@/components/PlatformHeader";
 
-// 已登入頁面共用的頂欄：站名 + 使用者名稱 + 登出。
-export default async function SiteHeader() {
+// 已登入頁面共用的頂欄（server wrapper）：
+// 取 session 名稱與 published 計畫清單，交給 client 的 PlatformHeader 呈現。
+export default async function SiteHeader({
+  currentProgramId,
+}: {
+  currentProgramId?: string;
+}) {
   const session = await auth();
   const name = session?.user?.name ?? "同學";
+  const programs = listPublishedPrograms().map((p) => ({
+    id: p.id,
+    title: p.title,
+    shortTitle: p.shortTitle,
+  }));
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2 text-lg font-bold text-slate-900"
-        >
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-sky-600 text-sm font-black text-white">
-            S
-          </span>
-          StockStudy 股市學習營
-        </Link>
-        <div className="flex items-center gap-3">
-          <span className="hidden text-sm text-slate-600 sm:inline">
-            嗨，{name}
-          </span>
-          <LogoutButton />
-        </div>
-      </div>
-    </header>
+    <PlatformHeader
+      programs={programs}
+      currentProgramId={currentProgramId}
+      userName={name}
+    />
   );
 }

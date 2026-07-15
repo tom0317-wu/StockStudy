@@ -25,7 +25,7 @@ export default function LoginForm() {
         setError("Email 或密碼錯誤，請再試一次");
         return;
       }
-      router.push("/dashboard");
+      router.push("/");
       router.refresh();
     } catch {
       setError("登入時發生錯誤，請稍後再試");

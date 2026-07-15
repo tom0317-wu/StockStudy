@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Phase } from "@/lib/content/types";
+import type { StageMeta } from "@/content/programs";
 import type { DayCardMeta } from "@/lib/course-client";
-import { phaseMetas } from "@/lib/phases";
 
 export interface DayCardData extends DayCardMeta {
   status: "not-started" | "read" | "quizzed";
@@ -33,33 +32,52 @@ export interface DashboardData {
     avgPercent: number | null;
     readCount: number;
   };
-  phases: { id: Phase; cards: DayCardData[] }[];
+  /** 只含實際有課文的 stage，依顯示順序排列 */
+  phases: { id: string; cards: DayCardData[] }[];
   categories: CategorySection[];
 }
 
 type Mode = "course" | "knowledge";
 
-export default function DashboardTabs({ data }: { data: DashboardData }) {
+export default function DashboardTabs({
+  data,
+  stages,
+  programId,
+  hasKnowledge,
+}: {
+  data: DashboardData;
+  stages: StageMeta[];
+  programId: string;
+  hasKnowledge: boolean;
+}) {
   const [mode, setMode] = useState<Mode>("course");
+  const stageMap = new Map(stages.map((s) => [s.id, s]));
 
   return (
     <div className="mt-6">
-      <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
-        <TabButton active={mode === "course"} onClick={() => setMode("course")}>
-          課程模式
-        </TabButton>
-        <TabButton
-          active={mode === "knowledge"}
-          onClick={() => setMode("knowledge")}
-        >
-          金融知識模式
-        </TabButton>
-      </div>
+      {hasKnowledge && (
+        <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+          <TabButton active={mode === "course"} onClick={() => setMode("course")}>
+            課程模式
+          </TabButton>
+          <TabButton
+            active={mode === "knowledge"}
+            onClick={() => setMode("knowledge")}
+          >
+            金融知識模式
+          </TabButton>
+        </div>
+      )}
 
-      {mode === "course" ? (
-        <CourseMode data={data} />
+      {hasKnowledge && mode === "knowledge" ? (
+        <KnowledgeMode categories={data.categories} programId={programId} />
       ) : (
-        <KnowledgeMode categories={data.categories} />
+        <CourseMode
+          data={data}
+          stageMap={stageMap}
+          programId={programId}
+          hasKnowledge={hasKnowledge}
+        />
       )}
     </div>
   );
@@ -89,7 +107,17 @@ function TabButton({
   );
 }
 
-function CourseMode({ data }: { data: DashboardData }) {
+function CourseMode({
+  data,
+  stageMap,
+  programId,
+  hasKnowledge,
+}: {
+  data: DashboardData;
+  stageMap: Map<string, StageMeta>;
+  programId: string;
+  hasKnowledge: boolean;
+}) {
   const { stats } = data;
   return (
     <div className="mt-6">
@@ -100,12 +128,15 @@ function CourseMode({ data }: { data: DashboardData }) {
           label="平均分數"
           value={stats.avgPercent === null ? "—" : `${stats.avgPercent}%`}
         />
-        <StatCard label="已讀知識" value={`${stats.readCount} 篇`} />
+        {hasKnowledge && (
+          <StatCard label="已讀知識" value={`${stats.readCount} 篇`} />
+        )}
       </div>
 
       <div className="mt-8 space-y-10">
         {data.phases.map((phase) => {
-          const meta = phaseMetas[phase.id];
+          const meta = stageMap.get(phase.id);
+          if (!meta) return null;
           return (
             <section key={phase.id}>
               <div className="flex items-center gap-3">
@@ -119,7 +150,12 @@ function CourseMode({ data }: { data: DashboardData }) {
               </div>
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {phase.cards.map((card) => (
-                  <DayCard key={card.day} card={card} />
+                  <DayCard
+                    key={card.day}
+                    card={card}
+                    meta={meta}
+                    programId={programId}
+                  />
                 ))}
               </div>
             </section>
@@ -139,13 +175,18 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function DayCard({ card }: { card: DayCardData }) {
-  // Stage 1 型別泛化後 phase 變成 string；stock-camp 內部仍固定用 Phase 字面值，故先用型別斷言
-  // 相容既有 phaseMetas 索引（Stage 5 會改收 stages props 取代，屆時移除）。
-  const meta = phaseMetas[card.phase as Phase];
+function DayCard({
+  card,
+  meta,
+  programId,
+}: {
+  card: DayCardData;
+  meta: StageMeta;
+  programId: string;
+}) {
   return (
     <Link
-      href={`/course/${card.day}`}
+      href={`/learn/${programId}/course/${card.day}`}
       className={`group flex flex-col rounded-xl border border-slate-200 bg-white p-4 transition-colors ${meta.cardRing} hover:shadow-sm`}
     >
       <div className="flex items-center justify-between">
@@ -190,7 +231,13 @@ function StatusBadge({ card }: { card: DayCardData }) {
   );
 }
 
-function KnowledgeMode({ categories }: { categories: CategorySection[] }) {
+function KnowledgeMode({
+  categories,
+  programId,
+}: {
+  categories: CategorySection[];
+  programId: string;
+}) {
   const [open, setOpen] = useState<string | null>(categories[0]?.id ?? null);
 
   return (
@@ -231,7 +278,7 @@ function KnowledgeMode({ categories }: { categories: CategorySection[] }) {
                     {cat.topics.map((t) => (
                       <li key={t.id}>
                         <Link
-                          href={`/knowledge/${t.id}`}
+                          href={`/learn/${programId}/knowledge/${t.id}`}
                           className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50"
                         >
                           <span

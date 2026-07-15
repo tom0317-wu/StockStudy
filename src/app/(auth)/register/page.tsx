@@ -5,7 +5,7 @@ import RegisterForm from "@/components/RegisterForm";
 
 export default async function RegisterPage() {
   const session = await auth();
-  if (session?.user) redirect("/dashboard");
+  if (session?.user) redirect("/");
 
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-12">
@@ -13,7 +13,7 @@ export default async function RegisterPage() {
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-slate-900">建立你的帳號</h1>
           <p className="mt-1 text-sm text-slate-500">
-            免費開始 32 天股市新手課程
+            免費開始探索各種學習計畫
           </p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

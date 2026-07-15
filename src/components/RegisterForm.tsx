@@ -41,7 +41,7 @@ export default function RegisterForm() {
         setError("註冊成功，但自動登入失敗，請前往登入頁手動登入");
         return;
       }
-      router.push("/dashboard");
+      router.push("/");
       router.refresh();
     } catch {
       setError("註冊時發生錯誤，請稍後再試");

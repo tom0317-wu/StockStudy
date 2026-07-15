@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StockStudy 股市學習營",
+  title: "StudyHub 學習平台",
   description:
-    "股市小白 32 天投資學習網站，美股與台股並重，全繁體中文，適合完全新手。",
+    "多主題自學平台：每個學習計畫都提供分日課文、隨堂測驗與詳解，全繁體中文，適合完全新手。",
 };
 
 export default function RootLayout({
