@@ -16,9 +16,9 @@ import {
 } from "./stock-camp/knowledge";
 
 import {
-  courseDays as bodySafetyCourseDays,
-  getDayLesson as getBodySafetyDayLesson,
-} from "./body-safety/course";
+  courseDays as bodyCareCourseDays,
+  getDayLesson as getBodyCareDayLesson,
+} from "./body-care/course";
 
 export interface ProgramCourse {
   courseDays: DayLesson[];
@@ -34,10 +34,10 @@ export interface ProgramKnowledge {
 
 const courseMap: Record<string, ProgramCourse> = {
   "stock-camp": { courseDays: stockCampCourseDays, getDayLesson: getStockCampDayLesson },
-  "body-safety": { courseDays: bodySafetyCourseDays, getDayLesson: getBodySafetyDayLesson },
+  "body-care": { courseDays: bodyCareCourseDays, getDayLesson: getBodyCareDayLesson },
 };
 
-// 無知識庫的 program（如 body-safety）在此 map 為 null。
+// 無知識庫的 program（如 body-care）在此 map 為 null。
 const knowledgeMap: Record<string, ProgramKnowledge | null> = {
   "stock-camp": {
     allTopics: stockCampTopics,
@@ -45,7 +45,7 @@ const knowledgeMap: Record<string, ProgramKnowledge | null> = {
     getTopic: getStockCampTopic,
     topicsByCategory: stockCampTopicsByCategory,
   },
-  "body-safety": null,
+  "body-care": null,
 };
 
 export function getProgram(id: string): Program | undefined {

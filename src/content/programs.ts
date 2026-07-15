@@ -3,7 +3,7 @@
 // 型別是規格的一部分：新增 program 前先讀 DESIGN.md「學習計畫 registry 與 program config」節。
 
 import { stockCampConfig } from "./stock-camp/config";
-import { bodySafetyConfig } from "./body-safety/config";
+import { bodyCareConfig } from "./body-care/config";
 
 /** published：入口頁列出可進入；archived：可直達但入口不列出；draft：一律 notFound */
 export type ProgramStatus = "published" | "archived" | "draft";
@@ -59,11 +59,11 @@ export const programs: Program[] = [
     config: stockCampConfig,
   },
   {
-    id: "body-safety",
-    title: "身體防護教學",
-    shortTitle: "身體防護",
-    description: "日常生活的風險意識與防護觀念：居家、外出與網路情境的安全常識。",
+    id: "body-care",
+    title: "30 天人體照護學習計畫",
+    shortTitle: "人體照護",
+    description: "融合動作訓練、傷害預防與徒手放鬆技巧的 30 天人體照護入門課程。",
     status: "published",
-    config: bodySafetyConfig,
+    config: bodyCareConfig,
   },
 ];
