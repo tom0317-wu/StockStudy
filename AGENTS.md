@@ -4,9 +4,12 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
-# StockStudy 專案要點（2026-07-13 建置）
+# StockStudy 專案要點（2026-07-15 更新：多學習計畫平台）
 
-股市新手 32 天學習網站：課程模式（32 天課文＋測驗＋詳解）＋金融知識模式（8 分類 49 主題）。
+多學習計畫平台（StudyHub，暫名）：單一帳號、單一入口（`/`），目前收錄兩個 program——
+`stock-camp`（股市新手 32 天學習營：課程模式＋8 分類 49 主題金融知識模式）與
+`body-care`（30 天人體照護學習計畫，目前僅 day01 已寫）。各 program 內容位於
+`src/content/<programId>/`，路由統一在 `/learn/[programId]/...`（舊路徑保留 redirect stub）。
 規格唯一來源是 `DESIGN.md`；部署步驟在 `DEPLOY.md`。
 
 - **架構決策（已定，勿重議）**：Auth.js v5 credentials（Email+密碼、JWT session）；本機 Prisma+SQLite（`dev.db`），部署 Vercel 時切 Neon Postgres；課程與知識內容是 `src/content/` 靜態 TS 檔，不進 DB、不線上抓取。
