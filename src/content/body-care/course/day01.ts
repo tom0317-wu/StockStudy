@@ -1,5 +1,128 @@
 import type { DayLesson } from "@/lib/content/types";
 
+// 人體三大解剖平面示意圖（body 為較擬真的人形輪廓 schematic）。
+const threePlanesSvg = `<svg viewBox="0 0 360 480" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+  <rect x="0" y="0" width="360" height="480" fill="#ffffff"/>
+  <!-- 冠狀面（teal，正面大矩形） -->
+  <rect x="112" y="46" width="136" height="340" rx="4" fill="#14b8a6" fill-opacity="0.14" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <!-- 身體 schematic：較擬真的人形輪廓 -->
+  <ellipse cx="180" cy="66" rx="22" ry="26" fill="#e5e7eb" stroke="#9ca3af" stroke-width="2"/>
+  <rect x="170" y="90" width="20" height="10" rx="3" fill="#e5e7eb" stroke="#9ca3af" stroke-width="2"/>
+  <path d="M158 100 C152 130 160 154 168 166 C160 186 156 206 164 220 L196 220 C204 206 200 186 192 166 C200 154 208 130 202 100 Z"
+        fill="#e5e7eb" stroke="#9ca3af" stroke-width="2"/>
+  <line x1="162" y1="104" x2="122" y2="205" stroke="#9ca3af" stroke-width="8" stroke-linecap="round"/>
+  <line x1="198" y1="104" x2="238" y2="205" stroke="#9ca3af" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="122" cy="216" rx="10" ry="12" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1.5"/>
+  <ellipse cx="238" cy="216" rx="10" ry="12" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1.5"/>
+  <line x1="166" y1="222" x2="158" y2="366" stroke="#9ca3af" stroke-width="10" stroke-linecap="round"/>
+  <line x1="194" y1="222" x2="202" y2="366" stroke="#9ca3af" stroke-width="10" stroke-linecap="round"/>
+  <ellipse cx="158" cy="376" rx="13" ry="8" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1.5"/>
+  <ellipse cx="202" cy="376" rx="13" ry="8" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1.5"/>
+  <!-- 矢狀面（rose，斜帶過中線） -->
+  <polygon points="180,40 220,60 220,392 180,372" fill="#f43f5e" fill-opacity="0.16" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <!-- 橫切面（indigo，腰部水平橢圓） -->
+  <ellipse cx="180" cy="205" rx="92" ry="22" fill="#6366f1" fill-opacity="0.16" stroke="#4f46e5" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <!-- 圖例 -->
+  <g font-size="13">
+    <rect x="66" y="410" width="14" height="14" rx="3" fill="#14b8a6" fill-opacity="0.35" stroke="#0d9488"/>
+    <text x="86" y="422" fill="#0f172a">冠狀面：分前 / 後</text>
+    <rect x="66" y="432" width="14" height="14" rx="3" fill="#f43f5e" fill-opacity="0.35" stroke="#e11d48"/>
+    <text x="86" y="444" fill="#0f172a">矢狀面：分左 / 右</text>
+    <rect x="66" y="454" width="14" height="14" rx="3" fill="#6366f1" fill-opacity="0.35" stroke="#4f46e5"/>
+    <text x="86" y="466" fill="#0f172a">橫切面：分上 / 下</text>
+  </g>
+</svg>`;
+
+// 各平面對應的動作方向示意圖（三格）。
+const planeMotionsSvg = `<svg viewBox="0 0 420 210" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+  <rect width="420" height="210" fill="#ffffff"/>
+  <defs>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto-start-reverse">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#334155"/>
+    </marker>
+  </defs>
+  <!-- 矢狀面：前後 -->
+  <rect x="12" y="12" width="126" height="186" rx="10" fill="#fff1f2" stroke="#fecdd3"/>
+  <text x="75" y="34" text-anchor="middle" font-size="13" font-weight="bold" fill="#e11d48">矢狀面</text>
+  <text x="75" y="52" text-anchor="middle" font-size="11" fill="#9f1239">前後方向的動作</text>
+  <circle cx="75" cy="88" r="12" fill="#fda4af"/>
+  <line x1="75" y1="100" x2="75" y2="142" stroke="#fb7185" stroke-width="5" stroke-linecap="round"/>
+  <line x1="75" y1="114" x2="98" y2="124" stroke="#fb7185" stroke-width="4" stroke-linecap="round"/>
+  <line x1="34" y1="168" x2="116" y2="168" stroke="#334155" stroke-width="2" marker-start="url(#arw)" marker-end="url(#arw)"/>
+  <text x="30" y="190" font-size="11" fill="#334155">後</text>
+  <text x="108" y="190" font-size="11" fill="#334155">前</text>
+  <!-- 冠狀面：左右 -->
+  <rect x="147" y="12" width="126" height="186" rx="10" fill="#f0fdfa" stroke="#99f6e4"/>
+  <text x="210" y="34" text-anchor="middle" font-size="13" font-weight="bold" fill="#0d9488">冠狀面</text>
+  <text x="210" y="52" text-anchor="middle" font-size="11" fill="#115e59">左右方向的動作</text>
+  <circle cx="210" cy="88" r="12" fill="#5eead4"/>
+  <line x1="210" y1="100" x2="210" y2="142" stroke="#2dd4bf" stroke-width="5" stroke-linecap="round"/>
+  <line x1="188" y1="116" x2="232" y2="116" stroke="#2dd4bf" stroke-width="4" stroke-linecap="round"/>
+  <line x1="170" y1="168" x2="250" y2="168" stroke="#334155" stroke-width="2" marker-start="url(#arw)" marker-end="url(#arw)"/>
+  <text x="166" y="190" font-size="11" fill="#334155">左</text>
+  <text x="244" y="190" font-size="11" fill="#334155">右</text>
+  <!-- 橫切面：旋轉 -->
+  <rect x="282" y="12" width="126" height="186" rx="10" fill="#eef2ff" stroke="#c7d2fe"/>
+  <text x="345" y="34" text-anchor="middle" font-size="13" font-weight="bold" fill="#4f46e5">橫切面</text>
+  <text x="345" y="52" text-anchor="middle" font-size="11" fill="#3730a3">旋轉方向的動作</text>
+  <circle cx="345" cy="112" r="30" fill="none" stroke="#a5b4fc" stroke-width="10"/>
+  <circle cx="345" cy="112" r="7" fill="#818cf8"/>
+  <path d="M345 74 A38 38 0 1 1 312 96" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#arw)"/>
+  <text x="345" y="190" text-anchor="middle" font-size="11" fill="#334155">左右轉體 / 轉頭</text>
+</svg>`;
+
+// 自我練習三步驟（操作步驟圖）。
+const day01StepsSvg = `<svg viewBox="0 0 420 160" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+  <rect width="420" height="160" fill="#ffffff"/>
+  <line x1="70" y1="48" x2="350" y2="48" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="5 5"/>
+  <g text-anchor="middle">
+    <circle cx="70" cy="48" r="22" fill="#0d9488"/>
+    <text x="70" y="54" font-size="18" font-weight="bold" fill="#ffffff">1</text>
+    <text x="70" y="92" font-size="12" fill="#0f172a">對著鏡子</text>
+    <text x="70" y="108" font-size="12" fill="#0f172a">比出三個平面</text>
+    <circle cx="210" cy="48" r="22" fill="#0d9488"/>
+    <text x="210" y="54" font-size="18" font-weight="bold" fill="#ffffff">2</text>
+    <text x="210" y="92" font-size="12" fill="#0f172a">挑日常動作</text>
+    <text x="210" y="108" font-size="12" fill="#0f172a">判斷所屬平面</text>
+    <circle cx="350" cy="48" r="22" fill="#0d9488"/>
+    <text x="350" y="54" font-size="18" font-weight="bold" fill="#ffffff">3</text>
+    <text x="350" y="92" font-size="12" fill="#0f172a">觀察複合動作</text>
+    <text x="350" y="108" font-size="12" fill="#0f172a">常同時跨平面</text>
+  </g>
+</svg>`;
+
+// 解剖學標準姿勢示意圖（body 為較擬真的人形輪廓 schematic）。
+const standardPositionSvg = `<svg viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+  <rect x="0" y="0" width="320" height="400" fill="#ffffff"/>
+  <!-- 身體 schematic：直立、正面，較擬真的輪廓 -->
+  <ellipse cx="160" cy="54" rx="24" ry="28" fill="#e5e7eb" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="150" y="80" width="20" height="10" rx="3" fill="#e5e7eb" stroke="#94a3b8" stroke-width="2"/>
+  <path d="M134 90 C128 122 136 146 144 158 C138 178 134 198 140 218 L180 218 C186 198 182 178 176 158 C184 146 192 122 186 90 Z"
+        fill="#e5e7eb" stroke="#94a3b8" stroke-width="2"/>
+  <!-- 雙臂自然下垂於身體兩側 -->
+  <line x1="136" y1="96" x2="112" y2="216" stroke="#94a3b8" stroke-width="9" stroke-linecap="round"/>
+  <line x1="184" y1="96" x2="208" y2="216" stroke="#94a3b8" stroke-width="9" stroke-linecap="round"/>
+  <!-- 掌心朝前（以青色橢圓表示手掌） -->
+  <ellipse cx="112" cy="228" rx="11" ry="14" fill="#5eead4" stroke="#0d9488" stroke-width="1.5"/>
+  <ellipse cx="208" cy="228" rx="11" ry="14" fill="#5eead4" stroke="#0d9488" stroke-width="1.5"/>
+  <!-- 雙腿併攏 -->
+  <line x1="150" y1="216" x2="146" y2="344" stroke="#94a3b8" stroke-width="11" stroke-linecap="round"/>
+  <line x1="170" y1="216" x2="174" y2="344" stroke="#94a3b8" stroke-width="11" stroke-linecap="round"/>
+  <ellipse cx="144" cy="354" rx="14" ry="8" fill="#e5e7eb" stroke="#94a3b8" stroke-width="1.5"/>
+  <ellipse cx="176" cy="354" rx="14" ry="8" fill="#e5e7eb" stroke="#94a3b8" stroke-width="1.5"/>
+  <!-- 眼睛平視水平線 -->
+  <line x1="60" y1="50" x2="270" y2="50" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <!-- 標籤 -->
+  <g font-size="13">
+    <text x="200" y="30" fill="#4f46e5" font-weight="bold">眼睛平視前方</text>
+    <text x="228" y="120" fill="#334155">雙臂自然下垂</text>
+    <line x1="226" y1="116" x2="200" y2="150" stroke="#94a3b8" stroke-width="1"/>
+    <text x="228" y="234" fill="#0d9488" font-weight="bold">掌心朝前</text>
+    <line x1="226" y1="230" x2="221" y2="228" stroke="#0d9488" stroke-width="1"/>
+    <text x="40" y="320" fill="#334155">身體直立、雙腳併攏</text>
+  </g>
+</svg>`;
+
 const lesson: DayLesson = {
   day: 1,
   phase: "W1",
@@ -20,6 +143,15 @@ const lesson: DayLesson = {
 - **理解動作設計**：不同平面的動作訓練到不同的肌群與控制能力，這是之後開立運動處方的基礎。
 
 三大面都以「解剖學標準姿勢」為基準：身體直立、眼睛平視前方、雙臂自然下垂於身體兩側、掌心朝前。之後所有的方向描述，都是以這個姿勢為出發點。`,
+      figures: [
+        {
+          id: "d01-fig0",
+          title: "解剖學標準姿勢",
+          alt: "正面站立人體示意圖：身體直立、雙腳併攏、眼睛平視前方（以水平虛線標示）、雙臂自然下垂於身體兩側、雙手掌心朝前（以青色小手掌標示）。",
+          svg: standardPositionSvg,
+          caption: "所有方向描述都以這個「解剖學標準姿勢」為出發點；掌心朝前是關鍵細節。",
+        },
+      ],
     },
     {
       heading: "三大面各是什麼：定義與記憶法",
@@ -36,6 +168,15 @@ const lesson: DayLesson = {
 - 每個平面其實有**無限多個**：矢狀面可以切在正中央（稱為正中矢狀面，把身體分成對稱的左右兩半），也可以偏左或偏右切。
 - 「冠狀面」與「額狀面」是同一個東西的兩種稱呼；「橫切面」也常稱「水平面」，看到不同書用不同名詞不用緊張。
 - 三個平面是**假想的參考工具**，不是身體真實存在的構造，目的是讓大家用同一套座標講話。`,
+      figures: [
+        {
+          id: "d01-fig1",
+          title: "人體三大解剖平面",
+          alt: "一個站立人體的示意圖，疊上三個互相垂直的平面：teal 色的冠狀面（分前後）為正面大矩形、rose 色的矢狀面（分左右）為沿中線的縱向斜帶、indigo 色的橫切面（分上下）為腰部的水平橢圓，下方附三色圖例。",
+          svg: threePlanesSvg,
+          caption: "示意圖：三個平面互相垂直，像把人放進透明盒子從三個方向各切一刀。顏色僅為區分用途。",
+        },
+      ],
     },
     {
       heading: "用三大面描述日常動作",
@@ -48,6 +189,15 @@ const lesson: DayLesson = {
 一個實用的觀察練習：站在鏡子前做「舉手過頭」，從**正前方**往側面抬手畫大圓，是冠狀面動作；改成從**正前方往上**舉，則主要在矢狀面進行。同一個「舉手」，路徑不同、平面就不同，訓練到的肌群與關節控制也不同。
 
 之後第 6 天談站姿坐姿、第三週談體態評估時，會不斷用到這套語言——例如駝背主要是矢狀面上的變化、身體左右歪斜是冠狀面上的變化。今天先把三個方向記熟，後面會越用越順。`,
+      figures: [
+        {
+          id: "d01-fig2",
+          title: "各平面對應的動作方向",
+          alt: "三格對照圖：矢狀面格內為側面小人與前後雙向箭頭（前後方向）、冠狀面格內為正面小人與左右雙向箭頭（左右方向）、橫切面格內為一個帶旋轉箭頭的圓（旋轉方向）。",
+          svg: planeMotionsSvg,
+          caption: "判斷訣竅：看動作路徑方向——前後屬矢狀面、左右屬冠狀面、旋轉屬橫切面。",
+        },
+      ],
     },
     {
       heading: "小結與自我練習",
@@ -60,6 +210,15 @@ const lesson: DayLesson = {
 3. **找混合**：觀察「打羽球殺球」或「起床下床」這類複合動作，你會發現多數真實動作**同時橫跨多個平面**——這是正常的，平面分類是幫助拆解動作的工具，不是要把動作硬塞進單一類別。
 
 明天（第 2 天）我們會在這套座標上，認識脊椎、肩胛骨、骨盆與四肢骨等主要骨骼的位置。`,
+      figures: [
+        {
+          id: "d01-fig3",
+          title: "自我練習三步驟",
+          alt: "三個編號步驟由虛線串接：步驟 1 對著鏡子比出三個平面、步驟 2 挑日常動作判斷所屬平面、步驟 3 觀察複合動作常同時跨平面。",
+          svg: day01StepsSvg,
+          caption: "依序完成三個小練習，都只需觀察與描述、不需器材。",
+        },
+      ],
     },
   ],
   keyTakeaways: [

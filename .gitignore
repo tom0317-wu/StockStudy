@@ -46,3 +46,9 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# 內容產出參考檔，不進版控（DESIGN.md 規定）
+body_prompt.md
+
+# 本機 MCP 工具設定（playwright，環境相關）
+.mcp.json

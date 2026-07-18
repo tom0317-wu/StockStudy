@@ -1,7 +1,8 @@
-// 已切換為 Neon Postgres（Vercel 部署）。
-// url 用 Neon 提供的 pooled 連線（含 pgbouncer 參數，供 runtime 用）；
-// directUrl 用非 pooled 直連（供 prisma migrate / db push 用）。
-// 刻意不使用 enum 與 Json 型別。若要回本機 SQLite，見 backups/2026-07-13/StockStudy-deploy/。
+// 資料庫 provider 由 scripts/set-prisma-provider.mjs 依環境「自動」改寫，不需手動切換：
+//   本機開發 → sqlite（url = DATABASE_URL）；Vercel → postgresql（Neon，url/ directUrl 見下）。
+// 該腳本已掛在 dev / build / db:push / postinstall 之前執行（見 package.json），詳見 DEPLOY.md「四、本機開發」。
+// 下方 datasource 區塊是「當前環境」的結果，會被腳本覆寫，不要手動改動它的內容。
+// models 刻意不使用 enum 與 Json 型別，確保 sqlite 與 postgresql 兩邊皆相容。
 
 generator client {
   provider = "prisma-client-js"

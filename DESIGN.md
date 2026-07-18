@@ -269,6 +269,11 @@ export default lesson;
   且只能使用該 program 對應知識庫（目前只有 stock-camp）主題清單中存在的 id，每日 2–5 個；無知識庫的
   program（如 body-care）省略此欄位，頁面讀取一律用 `lesson.relatedTopicIds ?? []` 防呆。
 - 每日 3–4 個 sections，每節 300–600 字 Markdown（可用 `###`、表格、粗體、列表；**不可用 HTML**）。
+- **解剖示意圖（選填 `LessonSection.figures?: LessonFigure[]`）**：內文禁止 HTML，故媒體改走此結構化欄位，
+  由 `src/components/Figure.tsx` 以受控方式渲染在該節 body 之後。`LessonFigure` 欄位：`id`（格式
+  `d{day}-fig{n}`）、`title`、`alt`（無障礙描述）、`svg`（**自繪**的內嵌 SVG 原始碼字串，須自帶
+  `viewBox`、寬高不寫死，**禁止** `<script>`／外部資源／事件屬性）、選填 `caption`。SVG 為作者自繪的可信
+  靜態向量圖，不外連、不線上抓取，符合「內容是靜態 TS 檔」原則。body-care 每個課程重點應至少搭配一張示意圖。
 - goal 1–2 句；keyTakeaways 3–5 條。
 - 有測驗的 program：quiz 6–8 題（stock-camp Day 32 為總複習，12–15 題）；測驗選項固定 4 個；
   explanation 至少 2 句，要**教觀念**，不能只說「答案是 B」。題目 id 格式 `d{day 兩位數}-q{序號}`，如 `d01-q3`。
@@ -357,6 +362,12 @@ body-care（`hasKnowledge:false`）沒有對應知識庫。
 保守，不確定的制度性或醫學數字一律寫「以主管機關公告為準」或「請諮詢專業人員」，**禁止編造**。
 `day01.ts` 目前不含測驗（`quiz` 可為空陣列，UI 對空測驗題目顯示「本日尚無測驗題目」）；後續 day02+
 是否加測驗，依撰寫時的教學需求決定，不強制比照 stock-camp 的 6–8 題。
+
+**媒體策略（2026-07-15 定案）**：因人體結構複雜，body-care 每個課程重點須搭配**自繪 SVG 解剖示意圖**
+（走 `LessonSection.figures`，見「內容合約」節）。素材一律自繪、不外連真實圖片／影片／3D 連結（避免
+編造來源與連結失效）；SVG 為 schematic 示意風格，`alt` 須據實描述「這是示意圖、畫了什麼」。每日均需
+課後測驗，交卷後對錯題顯示詳解（沿用既有 `Quiz` 元件與後端閱卷）。學員可自由挑選任一天上課（dashboard
+已支援任意進入）。`day02.ts` 為此策略的範本（含 4 張示意圖與 7 題測驗）。
 
 ## 驗收基準
 

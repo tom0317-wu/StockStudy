@@ -10,6 +10,7 @@ import {
 } from "@/content";
 import { toClientQuiz } from "@/lib/course-client";
 import Markdown from "@/components/Markdown";
+import Figure from "@/components/Figure";
 import LessonActions from "@/components/LessonActions";
 import Quiz from "@/components/Quiz";
 
@@ -99,6 +100,9 @@ export default async function CourseDayPage({
               {section.heading}
             </h2>
             <Markdown>{section.body}</Markdown>
+            {section.figures?.map((fig) => (
+              <Figure key={fig.id} figure={fig} />
+            ))}
           </section>
         ))}
       </div>

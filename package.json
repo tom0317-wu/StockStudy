@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "dev": "node scripts/set-prisma-provider.mjs && prisma generate && next dev",
+    "build": "node scripts/set-prisma-provider.mjs && prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "db:push": "node scripts/set-prisma-provider.mjs && prisma db push",
+    "postinstall": "node scripts/set-prisma-provider.mjs && prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

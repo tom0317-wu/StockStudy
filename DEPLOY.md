@@ -43,12 +43,22 @@ vercel --prod --yes   # 上傳 + 在 Vercel 建置 + 部署
    或在有 Neon 連線字串時直接 `npx prisma migrate dev --name <變更說明>`。
 2. 把新 migration 資料夾 commit / 一起 `vercel --prod`，build 時 `migrate deploy` 會自動套用。
 
-## 四、本機開發（重要）
+## 四、本機開發（多環境自動切換）
 
-`schema.prisma` 現在是 **postgresql**，本機 `.env` 的 `DATABASE_URL="file:./dev.db"` 已不被 schema 使用，所以 `npm run dev` 在本機會連不到資料庫。兩個選擇：
+**provider 依環境自動切換，不需手動改 schema**（類似 Vue 的多環境設定檔）：
 
-- **（推薦）本機也連 Neon dev branch**：在 Neon 建一個 development 分支，把它的 `POSTGRES_PRISMA_URL` / `POSTGRES_URL_NON_POOLING` 寫進本機 `.env`（此檔已被 `.gitignore` 擋住）。開發與正式環境一致。
-- **回到 SQLite 本機開發**：把 `prisma/schema.prisma` 還原成 SQLite 版（備份在 `~/.claude/backups/2026-07-13/StockStudy-deploy/schema.prisma.sqlite`），並還原 `.env` 的 `DATABASE_URL`。缺點是與正式環境不一致。
+- 機制：`scripts/set-prisma-provider.mjs` 在 `dev` / `build` / `db:push` / `postinstall` 之前執行，
+  就地改寫 `prisma/schema.prisma` 的 `datasource` 區塊：
+  - **本機**（未偵測到 Vercel）→ `sqlite`，`url = env("DATABASE_URL")`（`.env` 內為 `file:./dev.db`）。
+  - **Vercel**（install/build/runtime 會設 `VERCEL=1`）→ `postgresql`，`url = POSTGRES_PRISMA_URL`、
+    `directUrl = POSTGRES_URL_NON_POOLING`（Neon 整合自動注入）。
+  - 可用環境變數 `DATABASE_PROVIDER=sqlite|postgresql` 明確覆寫（例如本機臨時測 Postgres）。
+- **本機第一次或換機**：`npm install`（postinstall 會設好 sqlite 並 `prisma generate`）→
+  `npm run db:push`（用 schema 建/同步 `dev.db`）→ `npm run dev`。之後改內容不需重建表。
+- **Vercel 部署**：照舊 `vercel --prod`。build script 會先把 provider 切成 postgresql，再
+  `prisma migrate deploy` 套用 `prisma/migrations/` 的 Postgres migration。**不必再手動還原 schema**。
+- 注意：本機用 `db:push`（不經 migration），Postgres migration 只在 Vercel build 時 `migrate deploy`；
+  改了 `schema.prisma` 的 model 後，Postgres 側請依「三、若改了資料表結構」補一份 migration。
 
 ## 五、部署後檢查清單（本次已全數通過）
 

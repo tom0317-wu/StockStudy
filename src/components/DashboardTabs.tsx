@@ -195,7 +195,10 @@ function DayCard({
         </span>
         <span className="text-xs text-slate-400">{card.minutes} 分鐘</span>
       </div>
-      <h3 className="mt-2 flex-1 text-sm font-semibold leading-6 text-slate-900">
+      <h3
+        title={card.title}
+        className="mt-2 line-clamp-2 flex-1 text-sm font-semibold leading-6 text-slate-900"
+      >
         {card.title}
       </h3>
       <div className="mt-3">

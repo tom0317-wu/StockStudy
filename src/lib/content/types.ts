@@ -18,10 +18,45 @@ export interface QuizQuestion {
   explanation: string;
 }
 
+/**
+ * 課程內嵌的解剖示意圖（自繪 SVG）。
+ * svg 是可信的靜態向量原始碼字串，由 <Figure> 元件以受控方式渲染；
+ * 這是「內文禁止 HTML」合約之外、獨立的結構化媒體欄位，不放進 section.body。
+ */
+export interface LessonFigure {
+  /** 唯一 id，格式 d{day 兩位數}-fig{序號}，例如 "d02-fig1" */
+  id: string;
+  /** 圖說標題 */
+  title: string;
+  /** 無障礙 alt 文字：用文字描述這張圖畫了什麼、標了哪些構造 */
+  alt: string;
+  /**
+   * 圖形來源，svg 與 image 二選一（至少提供一個）：
+   * - svg：內嵌 SVG 原始碼字串。必須自帶 viewBox 以便響應式縮放，寬高不寫死；
+   *   禁止 <script> 與事件屬性。可用 <image href="/body-care/figures/xxx.svg"> 內嵌本地
+   *   真實解剖圖並疊加中文引線標籤（見 public/body-care/figures/）。
+   * - image：直接顯示的本地真實圖片素材（下載自公有領域來源，存在 public/ 下）。
+   */
+  svg?: string;
+  image?: {
+    /** 本地資產路徑（以 / 開頭，對應 public/），如 "/body-care/figures/skeleton.svg" */
+    src: string;
+  };
+  /**
+   * 真實圖片素材的來源與授權標註，顯示於圖下方小字。
+   * 使用外部素材（Wikimedia 等）時必填；優先採用公有領域（Public Domain）來源。
+   */
+  credit?: string;
+  /** 選填：圖下方的補充說明或觀察提示 */
+  caption?: string;
+}
+
 export interface LessonSection {
   heading: string;
   /** Markdown（GFM），可用 ###、表格、粗體、列表；不可用 HTML */
   body: string;
+  /** 選填：本節搭配的解剖示意圖，依序顯示在 body 之後 */
+  figures?: LessonFigure[];
 }
 
 export interface DayLesson {

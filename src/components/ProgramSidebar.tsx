@@ -180,7 +180,9 @@ function ChapterLink({
         <span className="flex-shrink-0 text-xs font-medium text-slate-400">
           Day {chapter.day}
         </span>
-        <span className="flex-1 truncate">{chapter.title}</span>
+        <span className="flex-1 truncate" title={chapter.title}>
+          {chapter.title}
+        </span>
       </Link>
     </li>
   );
